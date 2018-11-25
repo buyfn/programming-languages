@@ -1,8 +1,3 @@
-(* fun count (xs : 'a list) = *)
-(*     if null xs *)
-(*     then 0 *)
-(*     else 1 + count (tl xs) *)
-
 fun is_older (a : int * int * int, b : int * int * int) : bool =
     #1 a < #1 b orelse
     (#1 a = #1 b andalso #2 a < #2 b) orelse
