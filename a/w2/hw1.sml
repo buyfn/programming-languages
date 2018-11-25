@@ -1,8 +1,10 @@
+(* 1 *)
 fun is_older (a : int * int * int, b : int * int * int) : bool =
     #1 a < #1 b orelse
     (#1 a = #1 b andalso #2 a < #2 b) orelse
     (#1 a = #1 b andalso #2 a = #2 b andalso #3 a < #3 b)
 
+(* 2 *)
 fun number_in_month (ds : (int * int * int) list, month : int) =
     if null ds
     then 0
@@ -11,29 +13,34 @@ fun number_in_month (ds : (int * int * int) list, month : int) =
       then 1 + number_in_month (tl ds, month)
       else number_in_month (tl ds, month)
 
+(* 3 *)
 fun number_in_months (ds : (int * int * int) list, ms : int list) =
     if null ms
     then 0
     else number_in_month (ds, hd ms) + number_in_months (ds, tl ms)
 
+(* 4 *)
 fun dates_in_month (ds : (int * int * int) list, month : int) =
     if null ds
     then []
     else
       if #2 (hd ds) = month
-      then [hd ds] @ dates_in_month (tl ds, month)
+      then (hd ds) :: dates_in_month (tl ds, month)
       else dates_in_month (tl ds, month)
 
+(* 5 *)
 fun dates_in_months (ds : (int * int * int) list, ms : int list) =
     if null ms
     then []
     else (dates_in_month (ds, hd ms)) @ (dates_in_months (ds, tl ms))
 
+(* 6 *)
 fun get_nth (ss : string list, n : int) : string =
     if n <= 1
     then hd ss
     else get_nth (tl ss, n - 1)
 
+(* 7 *)
 fun date_to_string (date : (int * int * int)) : string =
     let
       val months = [
@@ -56,11 +63,13 @@ fun date_to_string (date : (int * int * int)) : string =
       Int.toString (#1 date)
     end
 
+(* 8 *)
 fun number_before_reaching_sum (sum : int, xs : int list) : int =
     if (hd xs) >= sum
     then 0
     else 1 + number_before_reaching_sum (sum - (hd xs), tl xs)
 
+(* 9 *)
 fun what_month (day : int) : int =
     let
       val monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -68,11 +77,13 @@ fun what_month (day : int) : int =
       number_before_reaching_sum (day, monthDays) + 1
     end
 
+(* 10 *)
 fun month_range (d1 : int, d2 : int) : int list =
     if d1 > d2
     then []
     else [what_month d1] @ month_range (d1 + 1, d2)
 
+(* 11 *)
 fun oldest (ds : (int * int * int) list) =
     if null ds
     then NONE
@@ -90,3 +101,31 @@ fun oldest (ds : (int * int * int) list) =
     in
       SOME (oldest_nonempty ds)
     end
+
+(* 12 *)
+fun contains (xs : int list, x : int) =
+    if null xs
+    then false
+    else ((hd xs) = x) orelse (contains (tl xs, x))
+
+fun uniq (xs : int list) : int list =
+    let
+      fun iter (xss : int list, acc : int list) =
+	  if null xss
+	  then acc
+	  else
+	    if contains (acc, hd xss)
+	    then iter (tl xss, acc)
+	    else iter (tl xss, acc @ [hd xss])
+    in
+      iter (xs, [])
+    end
+
+fun number_in_months_challenge (ds : (int * int * int) list, ms : int list) =
+    number_in_months (ds, uniq ms)
+
+fun dates_in_months_challenge (ds : (int * int * int) list, ms : int list) =
+    dates_in_months (ds, uniq ms)
+
+(* 13 *)
+fun reasonable_date (date : int * int * int) = false
