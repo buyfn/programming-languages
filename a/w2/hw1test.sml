@@ -48,3 +48,6 @@ val test12_2 = dates_in_months_challenge (
       (2011,3,31),
       (2011,4,28)
     ]
+
+val test13_1 = reasonable_date (2018, 11, 25) = true
+val test13_2 = reasonable_date (2018, 11, 31) = false
