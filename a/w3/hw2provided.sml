@@ -9,24 +9,14 @@ fun same_string(s1 : string, s2 : string) =
 (* put your solutions for problem 1 here *)
 
 (* 1a *)
-fun all_except_option (s, lst) =
-    let
-      fun contains tail =
-	  case tail of
-	      [] => false
-	    | fst::rest =>
-	      same_string(s, fst) orelse contains rest
-      fun remove (acc, tail) =
-	  case tail of
-	      [] => acc
-	    | fst::rest => if same_string(s, fst)
-			   then remove (acc, rest)
-			   else remove (acc @ [fst], rest)
-    in
-      if contains lst
-      then SOME (remove ([], lst))
-      else NONE
-    end
+fun all_except_option (s, ss) =
+    case ss of
+	[] => NONE
+      | cur::ss' => if same_string (s, cur)
+		    then SOME ss'
+		    else case all_except_option (s, ss') of
+			     NONE => NONE
+			   | SOME lst => SOME (cur::lst)
 
 (* 1b *)
 fun get_substitutions1 (substitutions, str) =
