@@ -88,16 +88,11 @@ fun card_value (_, Num n) = n
 
 (* 2c *)
 fun remove_card (cs, c, e) =
-    let
-      fun aux (left, right) =
-	  case right of
-	      [] => raise e
-	    | cur::rest => if cur = c
-			   then left @ rest
-			   else aux (left @ [cur], rest)
-    in
-      aux ([], cs)
-    end
+    case cs of
+	[] => raise e
+      | cur :: rest => if cur = c
+		     then rest
+		     else cur :: remove_card(rest, c, e)
 
 (* 2d *)
 fun all_same_color [] = true

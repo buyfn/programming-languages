@@ -42,6 +42,7 @@ val test6_1 = card_value (Clubs, Num 2) = 2
 val test6_2 = card_value (Clubs, Ace) = 11
 val test6_3 = card_value (Clubs, Jack) = 10
 
+(* 2c *)
 val test7_1 = remove_card (
       [(Hearts, Ace)],
       (Hearts, Ace),
@@ -55,6 +56,7 @@ val test7_2 = remove_card (
       IllegalMove
     ) = [(Hearts, Num 2)]
 
+(* 2d *)
 val test8_1 = all_same_color [(Hearts, Ace), (Hearts, Ace)] = true
 val test8_2 = all_same_color [
       (Clubs,Ace),
