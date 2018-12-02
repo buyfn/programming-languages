@@ -25,7 +25,47 @@ fun all_except_option (s, lst) =
       then SOME (remove ([], lst))
       else NONE
     end
-	
+
+fun get_substitutions1 (substitutions, str) =
+    case substitutions of
+	[] => []
+      | cur::rest =>
+	case all_except_option (str, cur) of
+	    NONE => get_substitutions1 (rest, str)
+	  | SOME res => res @ get_substitutions1(rest, str)
+
+fun get_substitutions2 (substitutions, str) =
+    let
+      fun aux (acc, lst) =
+	  case lst of
+	      [] => acc
+	    | cur::rest =>
+	      case all_except_option (str, cur) of
+		  NONE => aux (acc, rest)
+		| SOME res => aux (acc @ res, rest)
+    in
+      aux ([], substitutions)
+    end
+
+fun similar_names (substitutions, fullname) =
+    let
+      val { first = firstname,
+	    middle = middlename,
+	    last = lastname
+	  } = fullname
+      val alternative_names =
+	  get_substitutions2(substitutions, firstname)
+      fun aux (fullnames, firstnames) =
+	  case firstnames of
+	      [] => fullnames
+	    | cur::rest => aux (fullnames @
+				[{ first = cur,
+				   middle = middlename,
+				   last = lastname }],
+				rest)
+    in
+      aux ([fullname], alternative_names)
+    end
 
 (* you may assume that Num is always used with values 2, 3, ..., 10
    though it will not really come up *)
