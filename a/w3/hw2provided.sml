@@ -168,5 +168,3 @@ fun officiate (cs, ms, goal) =
     in
       aux ([], ms, cs)
     end
-
-val test = (true; false);
