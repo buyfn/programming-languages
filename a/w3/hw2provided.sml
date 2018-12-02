@@ -95,10 +95,9 @@ fun remove_card (cs, c, e) =
 		     else cur :: remove_card(rest, c, e)
 
 (* 2d *)
-fun all_same_color [] = true
-  | all_same_color (head::[]) = true
-  | all_same_color (head::neck::tail) =
+fun all_same_color (head::neck::tail) =
     card_color head = card_color neck andalso all_same_color (neck::tail)
+  | all_same_color _ = true
 
 (* 2e *)
 fun sum_cards cs =
