@@ -113,7 +113,7 @@ fun remove_card (cs, c, e) =
 fun all_same_color [] = true
   | all_same_color (head::[]) = true
   | all_same_color (head::neck::tail) =
-    card_color head = card_color neck andalso all_same_color tail
+    card_color head = card_color neck andalso all_same_color (neck::tail)
 
 (* 2e *)
 fun sum_cards cs =

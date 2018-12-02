@@ -56,6 +56,11 @@ val test7_2 = remove_card (
     ) = [(Hearts, Num 2)]
 
 val test8_1 = all_same_color [(Hearts, Ace), (Hearts, Ace)] = true
+val test8_2 = all_same_color [
+      (Clubs,Ace),
+      (Spades,Ace),
+      (Diamonds,Ace)
+    ] = false
 
 val test9_1 = sum_cards [(Clubs, Num 2),(Clubs, Num 2)] = 4
 val test9_2 = sum_cards [] = 0
@@ -71,6 +76,23 @@ val test10_3 = score (
       6) = 0
 
 val test11_1 = officiate ([(Hearts, Num 2),(Clubs, Num 4)],[Draw], 15) = 6
+
+(* Overdraw, different colors *)
+val test11_2 = officiate (
+      [(Clubs, Ace),
+       (Diamonds, Jack),
+       (Hearts, Num 2)],
+      [Draw, Draw, Draw],
+      19
+    ) = 6
+
+val test11_3 = officiate (
+      [(Clubs, Ace),
+       (Diamonds, Jack),
+       (Hearts, Ace)],
+      [Draw, Draw, Discard (Diamonds, Jack), Draw],
+      22
+    ) = 0
 
 val test12 = officiate (
       [(Clubs,Ace),
