@@ -110,6 +110,7 @@ fun check_pat pat =
       fun count_idfs p =
 	  case p of
 	      Variable x => [x]
+	    | ConstructorP (st, pt) => count_idfs pt
 	    | TupleP ps => List.foldl (fn (curP, acc) =>
 					  acc @ (count_idfs curP))
 				      [] ps

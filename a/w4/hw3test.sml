@@ -89,6 +89,12 @@ val test10_3 = check_pat (TupleP [
 			       Variable "y"
 			     ]
 			 ]) = false
+val test10_4 = check_pat (ConstructorP (
+			     "hi",
+			     TupleP [
+			       Variable "x", Variable "x"
+			     ]
+			   )) = false
 
 val test11_1 = match (Const(1), UnitP) =
 	       NONE
@@ -120,4 +126,3 @@ val test12_3 = first_match (Const 10) [
       Variable "x",
       Wildcard
     ] = SOME [("x", Const 10)]
-
