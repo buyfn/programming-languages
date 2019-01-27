@@ -18,8 +18,7 @@
 ;3
 (define (list-nth-mod xs n)
   (let* ([len (length xs)]
-         [i (remainder n len)]
-         )
+         [i (remainder n len)])
     (cond
       [(< n 0) (error "list-nth-mod: negative number")]
       [(null? xs) (error "list-nth-mod: empty list")]
