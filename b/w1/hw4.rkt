@@ -60,19 +60,38 @@
 ; 8
 (define (cycle-lists xs ys)
   (define (aux n)
-    (let ([a (list-nth-mod xs n)]
-          [b (list-nth-mod ys n)])
-      (cons a b)))
+    (cons (list-nth-mod xs n)
+          (list-nth-mod ys n)))
   (letrec ([f (lambda (x) (cons (aux x)
                                 (lambda () (f (add1 x)))))])
     (lambda () (f 0))))
 
 ; 9
 (define (vector-assoc v vec)
-  #f)
+  (letrec ([len (vector-length vec)]
+           [aux (lambda (i) (if (>= i len)
+                                #f
+                                (let ([current (vector-ref vec i)])
+                                  (if (pair? current)
+                                      (if (equal? (car current) v)
+                                          current
+                                          (aux (add1 i)))
+                                      (aux (add1 i))))))])
+    (aux 0)))
 
 ; 10
 (define (cached-assoc xs n)
-  #f)
+  (define cache (make-vector n #f))
+  (define pos 0)
+  (lambda (v) (let ([cached-result (vector-assoc v cache)])
+                (if cached-result
+                    cached-result
+                    (let ([result (assoc v xs)])
+                      (if result
+                          (begin
+                            (vector-set! cache pos result)
+                            (set! pos (if (>= pos (sub1 n)) 0 (add1 pos)))
+                            result)
+                          result))))))
 
 ; 11
