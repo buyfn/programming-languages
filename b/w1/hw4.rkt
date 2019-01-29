@@ -46,3 +46,33 @@
                                              "dan.jpg")])
                                (cons next (lambda () (f next)))))])
     (lambda () (f "dog.jpg"))))
+
+; 7
+(define (stream-add-zero s)
+  (letrec ([f (lambda (stream)
+                (let* ([p (stream)]
+                       [v (car p)]
+                       [next (cdr p)])
+                  (cons (cons 0 v)
+                        (lambda () (f next)))))])
+    (lambda () (f s))))
+
+; 8
+(define (cycle-lists xs ys)
+  (define (aux n)
+    (let ([a (list-nth-mod xs n)]
+          [b (list-nth-mod ys n)])
+      (cons a b)))
+  (letrec ([f (lambda (x) (cons (aux x)
+                                (lambda () (f (add1 x)))))])
+    (lambda () (f 0))))
+
+; 9
+(define (vector-assoc v vec)
+  #f)
+
+; 10
+(define (cached-assoc xs n)
+  #f)
+
+; 11
