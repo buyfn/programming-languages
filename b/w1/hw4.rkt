@@ -95,3 +95,15 @@
                           result))))))
 
 ; 11
+(define-syntax while-less
+  (syntax-rules (do)
+    [(while-less limit do body)
+     (let ([l limit]
+           [b body])
+       (define (loop i)
+         (if (>= i limit)
+             #t
+             (begin
+               body
+               (loop (add1 i)))))
+       (loop b))]))
