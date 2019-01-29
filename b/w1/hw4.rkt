@@ -101,7 +101,7 @@
      (let ([l limit]
            [b body])
        (define (loop i)
-         (if (>= i limit)
+         (if (>= i l)
              #t
              (begin
                body
