@@ -103,7 +103,5 @@
        (define (loop i)
          (if (>= i l)
              #t
-             (begin
-               body
-               (loop (add1 i)))))
+             (begin b (loop (add1 i)))))
        (loop b))]))
