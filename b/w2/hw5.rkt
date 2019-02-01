@@ -61,6 +61,52 @@
                        (int-num v2)))
                (error "MUPL addition applied to non-number")))]
         ;; CHANGE add more cases here
+        [(int? e) e]
+        [(closure? e) e]
+        [(ifgreater? e)
+         (let ([v1 (eval-under-env (ifgreater-e1 e) env)]
+               [v2 (eval-under-env (ifgreater-e2 e) env)])
+           (if (and (int? v1) (int? v2))
+               (if (> (int-num v1) (int-num v2))
+                   (eval-under-env (ifgreater-e3 e) env)
+                   (eval-under-env (ifgreater-e4 e) env))
+               (error "Tried to compare two values that are not both integers")))]
+        [(fun? e)
+         (closure env e)]
+        [(mlet? e)
+         (let ([var (mlet-var e)]
+               [val (eval-under-env (mlet-e e) env)]
+               [body (mlet-body e)])
+           (eval-under-env body (cons (cons var val) env)))]
+        [(call? e)
+         (let ([c (eval-under-env (call-funexp e) env)]
+               [arg-value (eval-under-env (call-actual e) env)])
+           (if (closure? c)
+               (let* ([f (closure-fun c)]
+                      [arg-name (fun-formal f)]
+                      [extended-env (cons (cons arg-name arg-value)
+                                          (closure-env c))])
+                 (eval-under-env (fun-body f)
+                                 (if (fun-nameopt f)
+                                     (cons (cons (fun-nameopt c) extended-env))
+                                     extended-env)))
+               (error "MUPL call applied to something that is not a closure")))]
+        [(apair? e)
+         (let ([v1 (eval-under-env (apair-e1 e) env)]
+               [v2 (eval-under-env (apair-e2 e) env)])
+           (apair v1 v2))]
+        [(fst? e)
+         (let ([v (eval-under-env (fst-e e) env)])
+           (if (apair? v)
+               (apair-e1 v)
+               (error "Applied fst to something that is not apair")))]
+        [(snd? e)
+         (let ([v (eval-under-env (snd-e e) env)])
+           (if (apair? v)
+               (apair-e2 v)
+               (error "Applied snd to something that is not apair")))]
+        [(isaunit e)
+         (if (aunit? e) (int 1) (int 0))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
 ;; Do NOT change

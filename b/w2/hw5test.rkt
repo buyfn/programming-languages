@@ -19,20 +19,30 @@
    ;; check mupllist to racketlist with normal list
    (check-equal? (mupllist->racketlist (apair (int 3) (apair (int 4) (aunit)))) (list (int 3) (int 4)) "racketlist->mupllist test")
 
+   ;; fun test
+   (check-equal? (eval-exp (fun #f "x" (var "x"))) (closure '() (fun #f "x" (var "x"))))
+
    ;; tests if ifgreater returns (int 2)
-   ; (check-equal? (eval-exp (ifgreater (int 3) (int 4) (int 3) (int 2))) (int 2) "ifgreater test")
+   (check-equal? (eval-exp (ifgreater (int 3) (int 4) (int 3) (int 2))) (int 2) "ifgreater test")
+   (check-equal? (eval-exp (ifgreater (int 3) (int 2) (int 3) (int 2))) (int 3) "ifgreater test 2")
    
    ;; mlet test
-   ; (check-equal? (eval-exp (mlet "x" (int 1) (add (int 5) (var "x")))) (int 6) "mlet test")
+   (check-equal? (eval-exp (mlet "x" (int 1) (add (int 5) (var "x")))) (int 6) "mlet test")
    
    ;; call test
-   ; (check-equal? (eval-exp (call (closure '() (fun #f "x" (add (var "x") (int 7)))) (int 1))) (int 8) "call test")
+   (check-equal? (eval-exp (call (closure '() (fun #f "x" (add (var "x") (int 7)))) (int 1))) (int 8) "call test")
+
+   ;; apair test
+   (check-equal? (eval-exp (apair (int 1) (add (int 1) (int 1)))) (apair (int 1) (int 2)) "apair test")
+
+   ;;fst test
+   (check-equal? (eval-exp (fst (apair (int 1) (int 2)))) (int 1) "fst test")
    
-   ;;snd test
-   ; (check-equal? (eval-exp (snd (apair (int 1) (int 2)))) (int 2) "snd test")
+   ;; snd test
+   (check-equal? (eval-exp (snd (apair (int 1) (int 2)))) (int 2) "snd test")
    
    ;; isaunit test
-   ; (check-equal? (eval-exp (isaunit (closure '() (fun #f "x" (aunit))))) (int 0) "isaunit test")
+   (check-equal? (eval-exp (isaunit (closure '() (fun #f "x" (aunit))))) (int 0) "isaunit test")
    
    ;; ifaunit test
    ; (check-equal? (eval-exp (ifaunit (int 1) (int 2) (int 3))) (int 3) "ifaunit test")
