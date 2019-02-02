@@ -107,7 +107,7 @@
                (apair-e2 v)
                (error "Applied snd to something that is not apair")))]
         [(isaunit? e)
-         (if (aunit? e) (int 1) (int 0))]
+         (if (aunit? (eval-under-env (isaunit-e e) env)) (int 1) (int 0))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
 ;; Do NOT change
@@ -117,7 +117,7 @@
 ;; Problem 3
 
 (define (ifaunit e1 e2 e3)
-  (if (aunit? e1) e2 e3))
+  (ifgreater (isaunit e1) (int 0) e2 e3))
 
 (define (mlet* lstlst e2)
   (if (null? lstlst)
@@ -133,11 +133,16 @@
 
 ;; Problem 4
 
-(define mupl-map "CHANGE")
+(define mupl-map
+  (fun #f "f"
+       (fun "iter" "xs" (ifaunit (var "xs")
+                                 (aunit)
+                                 (apair (call (var "f") (fst (var "xs")))
+                                        (call (var "iter") (snd (var "xs"))))))))
 
 (define mupl-mapAddN 
   (mlet "map" mupl-map
-        "CHANGE (notice map is now in MUPL scope)"))
+        (fun #f "i" (fun #f "xs" (call (call (var "map") (fun #f "x" (add (var "x") (var "i")))) (var "xs"))))))
 
 ;; Challenge Problem
 
