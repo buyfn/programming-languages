@@ -63,6 +63,7 @@
         ;; CHANGE add more cases here
         [(int? e) e]
         [(closure? e) e]
+        [(aunit? e) e]
         [(ifgreater? e)
          (let ([v1 (eval-under-env (ifgreater-e1 e) env)]
                [v2 (eval-under-env (ifgreater-e2 e) env)])
@@ -88,7 +89,7 @@
                                           (closure-env c))])
                  (eval-under-env (fun-body f)
                                  (if (fun-nameopt f)
-                                     (cons (cons (fun-nameopt c) extended-env))
+                                     (cons (cons (fun-nameopt f) c) extended-env)
                                      extended-env)))
                (error "MUPL call applied to something that is not a closure")))]
         [(apair? e)
@@ -105,7 +106,7 @@
            (if (apair? v)
                (apair-e2 v)
                (error "Applied snd to something that is not apair")))]
-        [(isaunit e)
+        [(isaunit? e)
          (if (aunit? e) (int 1) (int 0))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
@@ -115,11 +116,20 @@
         
 ;; Problem 3
 
-(define (ifaunit e1 e2 e3) "CHANGE")
+(define (ifaunit e1 e2 e3)
+  (if (aunit? e1) e2 e3))
 
-(define (mlet* lstlst e2) "CHANGE")
+(define (mlet* lstlst e2)
+  (if (null? lstlst)
+      e2
+      (let ([v (car (car lstlst))]
+            [e (cdr (car lstlst))])
+        (mlet* (cdr lstlst)
+               (mlet v e e2)))))
 
-(define (ifeq e1 e2 e3 e4) "CHANGE")
+(define (ifeq e1 e2 e3 e4)
+  (mlet* (list (cons "_x" e1) (cons "_y" e2))
+         (ifgreater (var "_x") (var "_y") e4 (ifgreater (var "_y") (var "_x") e4 e3))))
 
 ;; Problem 4
 
