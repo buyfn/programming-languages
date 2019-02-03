@@ -124,8 +124,7 @@
       e2
       (let ([v (car (car lstlst))]
             [e (cdr (car lstlst))])
-        (mlet* (cdr lstlst)
-               (mlet v e e2)))))
+        (mlet v e (mlet* (cdr lstlst) e2)))))
 
 (define (ifeq e1 e2 e3 e4)
   (mlet* (list (cons "_x" e1) (cons "_y" e2))
@@ -148,49 +147,41 @@
 
 (struct fun-challenge (nameopt formal body freevars) #:transparent) ;; a recursive(?) 1-argument function
 
-;; We will test this function directly, so it must do
-;; as described in the assignment
-(define (find-vars e)
-  (cond
-    [(var? e) (set e)]
-    [(apair? e)
-     (set-union (find-vars (apair-e1 e))
-                (find-vars (apair-e2 e)))]
-    [(add? e)
-     (set-union (find-vars (add-e1 e))
-                (find-vars (add-e2 e)))]
-    [(ifgreater? e)
-     (set-union (find-vars (ifgreater-e1 e))
-                (find-vars (ifgreater-e2 e))
-                (find-vars (ifgreater-e3 e))
-                (find-vars (ifgreater-e4 e)))]
-    [(fun? e)
-     (set-remove
-      (set-remove (find-vars (fun-body e))
-                  (var (fun-formal e)))
-      (var (fun-nameopt e)))]
-    [(call? e)
-     (set-union (find-vars (call-funexp e))
-                (find-vars (call-actual e)))]
-    [(mlet? e)
-     (set-remove
-      (set-union (find-vars (mlet-body e))
-                 (find-vars (mlet-e e)))
-      (var (mlet-var e)))]
-    [(isaunit? e)
-     (find-vars (isaunit-e e))]
-    [else (set)]))
-
 (define (compute-free-vars e)
-  (cond
-    [(fun? e) (fun-challenge (fun-nameopt e)
-                             (fun-formal e)
-                             (fun-body e)
-                             (find-vars e))]
-    [else e]))
-
-(define (select-env env vars)
-  (filter (lambda (v) (set-member? vars (var (car v)))) env))
+  (struct res (e fvs))
+  (define (f e)
+    (cond [(var? e) (res e (set (var-string e)))]
+          [(int? e) (res e (set))]
+          [(aunit? e) (res e (set))]
+          [(isaunit? e)
+           (res e (res-fvs (f (isaunit-e e))))]
+          [(apair? e)
+           (res e (set-union (res-fvs (f (apair-e1 e)))
+                             (res-fvs (f (apair-e2 e)))))]
+          [(add? e)
+           (res e (set-union (res-fvs (f (add-e1 e)))
+                             (res-fvs (f (add-e2 e)))))]
+          [(fst? e)
+           (res e (res-fvs (f (fst-e e))))]
+          [(snd? e)
+           (res e (res-fvs (f (snd-e e))))]
+          [(ifgreater? e)
+           (res e (set-union (res-fvs (f (ifgreater-e1 e)))
+                             (res-fvs (f (ifgreater-e2 e)))
+                             (res-fvs (f (ifgreater-e3 e)))
+                             (res-fvs (f (ifgreater-e4 e)))))]
+          [(fun? e)
+           (let* ([body-fvs (res-fvs (f (fun-body e)))]
+                  [fvs (set-remove (set-remove body-fvs (fun-nameopt e)) (fun-formal e))])
+             (res (fun-challenge (fun-nameopt e) (fun-formal e) (fun-body e) fvs) fvs))]
+          [(call? e)
+           (res e (set-union (res-fvs (f (call-funexp e)))
+                             (res-fvs (f (call-actual e)))))]
+          [(mlet? e)
+           (res e (set-union (res-fvs (f (mlet-e e)))
+                             (set-remove (res-fvs (f (mlet-body e))) (mlet-var e))))]
+          [else (error (format "bad MUPL expression: ~v" e))]))
+  (res-e (f e)))
 
 ;; Do NOT share code with eval-under-env because that will make
 ;; auto-grading and peer assessment more difficult, so
@@ -199,61 +190,62 @@
   (cond [(var? e)
          (envlookup env (var-string e))]
         [(add? e)
-         (let ([v1 (eval-under-env-c (add-e1 e) env)]
-               [v2 (eval-under-env-c (add-e2 e) env)])
+         (let ([v1 (eval-under-env (add-e1 e) env)]
+               [v2 (eval-under-env (add-e2 e) env)])
            (if (and (int? v1)
                     (int? v2))
                (int (+ (int-num v1)
                        (int-num v2)))
                (error "MUPL addition applied to non-number")))]
-        ;; CHANGE add more cases here
         [(int? e) e]
         [(closure? e) e]
         [(aunit? e) e]
         [(ifgreater? e)
-         (let ([v1 (eval-under-env-c (ifgreater-e1 (compute-free-vars e)) env)]
-               [v2 (eval-under-env-c (ifgreater-e2 (compute-free-vars e)) env)])
+         (let ([v1 (eval-under-env (ifgreater-e1 e) env)]
+               [v2 (eval-under-env (ifgreater-e2 e) env)])
            (if (and (int? v1) (int? v2))
                (if (> (int-num v1) (int-num v2))
-                   (eval-under-env-c (ifgreater-e3 (compute-free-vars e)) env)
-                   (eval-under-env-c (ifgreater-e4 (compute-free-vars e)) env))
+                   (eval-under-env (ifgreater-e3 e) env)
+                   (eval-under-env (ifgreater-e4 e) env))
                (error "Tried to compare two values that are not both integers")))]
         [(fun-challenge? e)
-         (closure (select-env env (fun-challenge-freevars e)) e)]
+         (closure (set-map (fun-challenge-freevars e)
+                           (lambda (v) (cons v (envlookup env v))))
+                  e)]
         [(mlet? e)
          (let ([var (mlet-var e)]
-               [val (eval-under-env-c (mlet-e (compute-free-vars e)) env)]
+               [val (eval-under-env (mlet-e e) env)]
                [body (mlet-body e)])
-           (eval-under-env-c (compute-free-vars body) (cons (cons var val) env)))]
+           (eval-under-env body (cons (cons var val) env)))]
         [(call? e)
-         (let ([c (eval-under-env-c (compute-free-vars (call-funexp e)) env)]
-               [arg-value (eval-under-env-c (compute-free-vars (call-actual e)) env)])
+         (let ([c (eval-under-env (call-funexp e) env)]
+               [arg-value (eval-under-env (call-actual e) env)])
            (if (closure? c)
                (let* ([f (closure-fun c)]
-                      [arg-name (fun-challenge-formal f)]
+                      [arg-name (fun-formal f)]
                       [extended-env (cons (cons arg-name arg-value)
                                           (closure-env c))])
-                 (eval-under-env-c (compute-free-vars (fun-challenge-body f))
-                                 (if (fun-challenge-nameopt f)
-                                     (cons (cons (fun-challenge-nameopt f) c) extended-env)
+                 (eval-under-env (fun-body f)
+                                 (if (fun-nameopt f)
+                                     (cons (cons (fun-nameopt f) c) extended-env)
                                      extended-env)))
                (error "MUPL call applied to something that is not a closure")))]
         [(apair? e)
-         (let ([v1 (eval-under-env-c (compute-free-vars (apair-e1 e)) env)]
-               [v2 (eval-under-env-c (compute-free-vars (apair-e2 e)) env)])
+         (let ([v1 (eval-under-env (apair-e1 e) env)]
+               [v2 (eval-under-env (apair-e2 e) env)])
            (apair v1 v2))]
         [(fst? e)
-         (let ([v (eval-under-env-c (compute-free-vars (fst-e e)) env)])
+         (let ([v (eval-under-env (fst-e e) env)])
            (if (apair? v)
                (apair-e1 v)
                (error "Applied fst to something that is not apair")))]
         [(snd? e)
-         (let ([v (eval-under-env-c (compute-free-vars (snd-e e)) env)])
+         (let ([v (eval-under-env (snd-e e) env)])
            (if (apair? v)
                (apair-e2 v)
                (error "Applied snd to something that is not apair")))]
         [(isaunit? e)
-         (if (aunit? (eval-under-env-c (compute-free-vars (isaunit-e e)) env)) (int 1) (int 0))]
+         (if (aunit? (eval-under-env (isaunit-e e) env)) (int 1) (int 0))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
 ;; Do NOT change this

@@ -53,7 +53,10 @@
    
    ;; mlet* test
    (check-equal? (eval-exp (mlet* (list (cons "x" (int 10))) (var "x"))) (int 10) "mlet* test")
-   (check-equal? (eval-exp (mlet* (list (cons "x" (int 10)) (cons "y" (int 20))) (add (var "x") (var "y")))) (int 30) "mlet* text 2")
+   (check-equal? (eval-exp (mlet* (list (cons "x" (int 10)) (cons "y" (int 20))) (add (var "x") (var "y")))) (int 30) "mlet* test 2")
+   (check-equal? (eval-exp (mlet* (list (cons "x" (int 10)) (cons "y" (add (var "x") (int 5))))
+                                  (add (var "x") (var "y"))))
+                           (int 25) "mlet* test 3")
    
    ;; ifeq test
    (check-equal? (eval-exp (ifeq (int 1) (int 2) (int 3) (int 4))) (int 4) "ifeq test")
@@ -78,57 +81,47 @@
   (test-suite
    "Tests for the challenge problem"
 
-   ;; find-vars tests
-   (check-equal? (find-vars (int 10))
-                 (set) "find-vars in an int expression")
-
-   (check-equal? (find-vars (var "x"))
-                 (set (var "x")) "find-vars in a var expression")
-   (check-equal? (find-vars (apair (var "x") (var "y")))
-                 (set (var "x") (var "y")) "find-vars in apair expression")
-
-   (check-equal? (find-vars (add (var "x") (var "y")))
-                 (set (var "x") (var "y")) "find-vars in an add expression")
-   (check-equal? (find-vars (add (int 1) (int 2)))
-                 (set) "find-vars in an add expression with no vars")
-
-   (check-equal? (find-vars (ifgreater (var "x") (var "y") (var "z") (aunit)))
-                 (set (var "x") (var "y") (var "z")) "find-vars in an ifgreater expression")
-
-   (check-equal? (find-vars (fun "foo" "x" (add (var "x") (var "y"))))
-                 (set (var "y")) "find-vars in a fun expression")
-   (check-equal? (find-vars (fun "foo" "x" (fun "bar" "y" (var "z"))))
-                 (set (var "z")) "find-vars in a nested fun expression")
-
-   (check-equal? (find-vars (call (fun "foo" "x" (var "y")) (int 10)))
-                 (set (var "y")) "find-vars in a call expression")
-
-   (check-equal? (find-vars (mlet "x" (int 10) (var "y")))
-                 (set (var "y")) "find-vars in a mlet expression")
-
-   (check-equal? (find-vars (fst (apair (int 1) (int 2))))
-                 (set) "find-vars in a fst expression")
-
-   (check-equal? (find-vars (snd (apair (int 1) (int 2))))
-                 (set) "find-vars in a snd expression")
-
-   (check-equal? (find-vars (aunit))
-                 (set) "find-vars in aunit expression")
-
-   (check-equal? (find-vars (isaunit (var "x")))
-                 (set (var "x")) "find-vars in an isaunit expression")
-
    ;; compute-free-vars tests
-   (check-equal? (compute-free-vars (int 1)) (int 1))
+   (check-equal? (compute-free-vars (int 10))
+                 (int 10) "compute-free-vars in an int expression")
+
+   (check-equal? (compute-free-vars (var "x"))
+                 (var "x") "compute-free-vars in a var expression")
+   (check-equal? (compute-free-vars (apair (var "x") (var "y")))
+                 (apair (var "x") (var "y")) "compute-free-vars in apair expression")
+
+   (check-equal? (compute-free-vars (add (var "x") (var "y")))
+                 (add (var "x") (var "y")) "compute-free-vars in an add expression")
+   (check-equal? (compute-free-vars (add (int 1) (int 2)))
+                 (add (int 1) (int 2)) "compute-free-vars in an add expression with no vars")
+
+   (check-equal? (compute-free-vars (ifgreater (var "x") (var "y") (var "z") (aunit)))
+                 (ifgreater (var "x") (var "y") (var "z") (aunit)) "compute-free-vars in an ifgreater expression")
+
+   (check-equal? (compute-free-vars (fun "foo" "x" (add (var "x") (var "y"))))
+                 (fun-challenge "foo" "x" (add (var "x") (var "y")) (set "y")) "compute-free-vars in a fun expression")
+   (check-equal? (compute-free-vars (fun "foo" "x" (fun "bar" "y" (var "z"))))
+                 (fun-challenge "foo" "x" (fun "bar" "y" (var "z")) (set "z")) "compute-free-vars in a nested fun expression")
    (check-equal? (compute-free-vars (fun #f "x" (var "y")))
-                 (fun-challenge #f "x" (var "y") (set (var "y"))) "compute-free-vars test")
+                 (fun-challenge #f "x" (var "y") (set "y")) "compute-free-vars in a fun expression")
 
-   ;; select-env tests
-   (check-equal? (select-env (list (cons "x" 10)) (set (var "x")))
-                 (list (cons "x" 10)) "select-env test")
-   (check-equal? (select-env (list (cons "x" 10)) (set (var "y")))
-                 (list) "select-env test")
+   (check-equal? (compute-free-vars (call (fun "foo" "x" (var "y")) (int 10)))
+                 (call (fun "foo" "x" (var "y")) (int 10)) "compute-free-vars in a call expression")
 
+   (check-equal? (compute-free-vars (mlet "x" (int 10) (var "y")))
+                 (mlet "x" (int 10) (var "y")) "compute-free-vars in a mlet expression")
+
+   (check-equal? (compute-free-vars (fst (apair (int 1) (int 2))))
+                 (fst (apair (int 1) (int 2))) "compute-free-vars in a fst expression")
+
+   (check-equal? (compute-free-vars (snd (apair (int 1) (int 2))))
+                 (snd (apair (int 1) (int 2))) "compute-free-vars in a snd expression")
+
+   (check-equal? (compute-free-vars (aunit))
+                 (aunit) "compute-free-vars in aunit expression")
+
+   (check-equal? (compute-free-vars (isaunit (var "x")))
+                 (isaunit (var "x")) "compute-free-vars in an isaunit expression")
    ))
 
 (require rackunit/text-ui)
