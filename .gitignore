@@ -2,3 +2,5 @@ compiled
 .DS_Store
 *.pdf
 notes.*
+.vagrant
+.vscode
